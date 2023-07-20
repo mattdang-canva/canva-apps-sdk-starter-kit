@@ -10,11 +10,14 @@ import {
 import React from "react";
 import styles from "styles/components.css";
 
-type Arrangement = "horizontal" | "circle"
+const drawIntervalMs = 400;
+
+type Arrangement = "horizontal" | "circle" | "wave"
 
 type AppElementData = {
   color: string;
   arrangement: Arrangement;
+  elementWidth: number;
   numElements: number;
   useRotation: boolean;
 };
@@ -23,24 +26,11 @@ type UIState = AppElementData;
 
 const initialState: UIState = {
   color: "#38b6ff",
-  arrangement: "circle",
+  arrangement: "wave",
+  elementWidth: 100,
   numElements: 5,
   useRotation: true,
 };
-
-const appElementClient = initAppElement<AppElementData>({
-  render: (data) => {
-    return [
-      {
-        type: "TEXT",
-        top: 0,
-        left: 0,
-        ...data,
-        children: ["X"],
-      },
-    ];
-  },
-});
 
 export const App = () => {
   const [state, setState] = React.useState<UIState>(initialState);
@@ -48,22 +38,16 @@ export const App = () => {
   const {
     color,
     arrangement,
+    elementWidth,
     numElements,
     useRotation,
   } = state;
 
-  React.useEffect(() => {
-    appElementClient.registerOnElementChange((appElement) => {
-      setState(appElement ? appElement.data : initialState);
-    });
-  }, []);
-
   async function generateHorizontal(width: number, height: number) {
-    const length = 100;
     const segmentWidth = width / numElements;
 
     for (let i = 0; i < state.numElements; i++) {
-      const x = i * segmentWidth + segmentWidth / 2 - length / 2;
+      const x = i * segmentWidth + segmentWidth / 2 - elementWidth / 2;
 
       await addNativeElement({
         type: "SHAPE",
@@ -76,25 +60,23 @@ export const App = () => {
           },
         ],
         viewBox: {
-          height: length,
-          width: length,
+          height: elementWidth,
+          width: elementWidth,
           left: 0,
           top: 0,
         },
         left: x,
-        top: height / 2 - length / 2,
-        width: length,
-        height: length,
+        top: height / 2 - elementWidth / 2,
+        width: elementWidth,
+        height: elementWidth,
       });
 
       // rate limited
-      await new Promise(r => setTimeout(r, 400));
+      await new Promise(r => setTimeout(r, drawIntervalMs));
     }
   }
 
   async function generateCircle(width: number, height: number) {
-    const length = 100;
-
     const tSegment = 2 * Math.PI / state.numElements;
     const tStart = - 2 * Math.PI / 4 + tSegment / 2;
 
@@ -103,8 +85,8 @@ export const App = () => {
     for (let i = 0; i < state.numElements; i++) {
       const t = tStart + i * tSegment;
 
-      const x = width / 2 + r * Math.cos(t) - length / 2;
-      const y = height / 2 + r * Math.sin(t) - length / 2;
+      const x = width / 2 + r * Math.cos(t) - elementWidth / 2;
+      const y = height / 2 + r * Math.sin(t) - elementWidth / 2;
 
       const rotationDegrees = -360 + t * 180 / Math.PI;
 
@@ -119,20 +101,55 @@ export const App = () => {
           },
         ],
         viewBox: {
-          height: length,
-          width: length,
+          height: elementWidth,
+          width: elementWidth,
           left: 0,
           top: 0,
         },
         left: x,
         top: y,
-        width: length,
-        height: length,
+        width: elementWidth,
+        height: elementWidth,
         rotation: useRotation ? rotationDegrees : undefined,
       });
 
       // rate limited
-      await new Promise(r => setTimeout(r, 400));
+      await new Promise(r => setTimeout(r, drawIntervalMs));
+    }
+  }
+
+  async function generateWave(width: number, height: number) {
+    const segmentWidth = width / numElements;
+    const tSegment = 2 * Math.PI / state.numElements;
+
+    for (let i = 0; i < state.numElements; i++) {
+      const x = i * segmentWidth + segmentWidth / 2 - elementWidth / 2;
+      const y = height / 2 + height / 4 * Math.cos(i * tSegment) - elementWidth / 2;
+
+      await addNativeElement({
+        type: "SHAPE",
+        paths: [
+          {
+            d: "M 0 0 H 100 V 100 H 0 L 0 0",
+            fill: {
+              color: state.color,
+            },
+          },
+        ],
+        viewBox: {
+          height: elementWidth,
+          width: elementWidth,
+          left: 0,
+          top: 0,
+        },
+        left: x,
+        top: y,
+        width: elementWidth,
+        height: elementWidth,
+      });
+
+      // rate limited
+      await new Promise(r => setTimeout(r, drawIntervalMs));
     }
   }
 
@@ -151,6 +168,7 @@ export const App = () => {
                       options={[
                         { value: "horizontal", label: "Horizontal" },
                         { value: "circle", label: "Circle" },
+                        { value: "wave", label: "Wave" },
                       ]}
                       onChange={(value) => {
                         setState((prevState) => {
@@ -165,13 +183,32 @@ export const App = () => {
               )}
           />
           <FormField
+              label="Element Width"
+              value={elementWidth}
+              control={(props) => (
+                  <NumberInput
+                      {...props}
+                      min={10}
+                      max={200}
+                      onChange={(value) => {
+                        setState((prevState) => {
+                          return {
+                            ...prevState,
+                            elementWidth: Number(value || 10),
+                          };
+                        });
+                      }}
+                  />
+              )}
+          />
+          <FormField
               label="Number of Elements"
               value={numElements}
               control={(props) => (
                   <NumberInput
                       {...props}
                       min={1}
-                      max={15}
+                      max={64}
                       onChange={(value) => {
                         setState((prevState) => {
                           return {
@@ -240,6 +277,9 @@ export const App = () => {
                     break;
                   case "circle":
                     await generateCircle(width, height);
+                    break;
+                  case "wave":
+                    await generateWave(width, height);
                     break;
                 }
               }}
