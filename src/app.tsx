@@ -2,7 +2,7 @@ import { addNativeElement, getCurrentPageContext, initAppElement } from "@canva/
 import {
   Button,
   FormField,
-  NumberInput,
+  NumberInput, RadioGroup,
   Rows, Select,
   Text, TextInput,
 
@@ -10,20 +10,22 @@ import {
 import React from "react";
 import styles from "styles/components.css";
 
-type Arrangement = "horizontal" | "ellipse"
+type Arrangement = "horizontal" | "circle"
 
 type AppElementData = {
   color: string;
   arrangement: Arrangement;
   numElements: number;
+  useRotation: boolean;
 };
 
 type UIState = AppElementData;
 
 const initialState: UIState = {
   color: "#38b6ff",
-  arrangement: "horizontal",
+  arrangement: "circle",
   numElements: 5,
+  useRotation: true,
 };
 
 const appElementClient = initAppElement<AppElementData>({
@@ -47,6 +49,7 @@ export const App = () => {
     color,
     arrangement,
     numElements,
+    useRotation,
   } = state;
 
   React.useEffect(() => {
@@ -80,8 +83,52 @@ export const App = () => {
         },
         left: x,
         top: height / 2 - length / 2,
-        width: 100,
-        height: 100,
+        width: length,
+        height: length,
+      });
+
+      // rate limited
+      await new Promise(r => setTimeout(r, 400));
+    }
+  }
+
+  async function generateCircle(width: number, height: number) {
+    const length = 100;
+
+    const tSegment = 2 * Math.PI / state.numElements;
+    const tStart = - 2 * Math.PI / 4 + tSegment / 2;
+
+    const r = height / 3;
+
+    for (let i = 0; i < state.numElements; i++) {
+      const t = tStart + i * tSegment;
+
+      const x = width / 2 + r * Math.cos(t) - length / 2;
+      const y = height / 2 + r * Math.sin(t) - length / 2;
+
+      const rotationDegrees = -360 + t * 180 / Math.PI;
+
+      await addNativeElement({
+        type: "SHAPE",
+        paths: [
+          {
+            d: "M 0 0 H 100 V 100 H 0 L 0 0",
+            fill: {
+              color: state.color,
+            },
+          },
+        ],
+        viewBox: {
+          height: length,
+          width: length,
+          left: 0,
+          top: 0,
+        },
+        left: x,
+        top: y,
+        width: length,
+        height: length,
+        rotation: useRotation ? rotationDegrees : undefined,
       });
 
       // rate limited
@@ -103,7 +150,7 @@ export const App = () => {
                       {...props}
                       options={[
                         { value: "horizontal", label: "Horizontal" },
-                        { value: "ellipse", label: "Ellipse" },
+                        { value: "circle", label: "Circle" },
                       ]}
                       onChange={(value) => {
                         setState((prevState) => {
@@ -136,6 +183,33 @@ export const App = () => {
                   />
               )}
           />
+          { arrangement == "circle" ? <FormField
+              label="Rotate Items?"
+              value={useRotation}
+              control={(props) => (
+                  <RadioGroup
+                      {...props}
+                      options={[
+                        {
+                          label: "Yes",
+                          value: true,
+                        },
+                        {
+                          label: "No",
+                          value: false,
+                        },
+                      ]}
+                      onChange={(value) => {
+                        setState((prevState) => {
+                          return {
+                            ...prevState,
+                            useRotation: value,
+                          };
+                        });
+                      }}
+                  />
+              )}
+          /> : undefined }
           <FormField
               label="Color"
               value={color}
@@ -164,7 +238,8 @@ export const App = () => {
                   case "horizontal":
                     await generateHorizontal(width, height);
                     break;
-                  case "ellipse":
+                  case "circle":
+                    await generateCircle(width, height);
                     break;
                 }
               }}
