@@ -12,7 +12,7 @@ import styles from "styles/components.css";
 
 const drawIntervalMs = 400;
 
-type Arrangement = "horizontal" | "circle" | "wave"
+type Arrangement = "horizontal" | "circle" | "wave" | "spiral"
 
 type AppElementData = {
   color: string;
@@ -26,7 +26,7 @@ type UIState = AppElementData;
 
 const initialState: UIState = {
   color: "#38b6ff",
-  arrangement: "wave",
+  arrangement: "spiral",
   elementSize: 100,
   numElements: 5,
   useRotation: true,
@@ -153,6 +153,47 @@ export const App = () => {
     }
   }
 
+  async function generateSpiral(width: number, height: number) {
+    const tSegment = 2 * Math.PI / state.numElements;
+    const tStart = - 2 * Math.PI / 4 + tSegment / 2;
+
+    for (let i = 0; i < state.numElements; i++) {
+      const t = tStart + 2 * i * tSegment;
+      const r = (height / 8) + i * height / 4 / state.numElements;
+
+      const x = width / 2 + r * Math.cos(t) - elementSize / 2;
+      const y = height / 2 + r * Math.sin(t) - elementSize / 2;
+
+      const rotationDegrees = -360 + t * 180 / Math.PI;
+
+      await addNativeElement({
+        type: "SHAPE",
+        paths: [
+          {
+            d: "M 0 0 H 100 V 100 H 0 L 0 0",
+            fill: {
+              color: state.color,
+            },
+          },
+        ],
+        viewBox: {
+          height: elementSize,
+          width: elementSize,
+          left: 0,
+          top: 0,
+        },
+        left: x,
+        top: y,
+        width: elementSize,
+        height: elementSize,
+        rotation: useRotation ? rotationDegrees : undefined,
+      });
+
+      // rate limited
+      await new Promise(r => setTimeout(r, drawIntervalMs));
+    }
+  }
+
   return (
       <div className={styles.scrollContainer}>
         <Rows spacing="2u">
@@ -168,6 +209,7 @@ export const App = () => {
                       options={[
                         { value: "horizontal", label: "Horizontal" },
                         { value: "circle", label: "Circle" },
+                        { value: "spiral", label: "Spiral" },
                         { value: "wave", label: "Wave" },
                       ]}
                       onChange={(value) => {
@@ -220,7 +262,7 @@ export const App = () => {
                   />
               )}
           />
-          { arrangement == "circle" ? <FormField
+          { arrangement == "circle" || arrangement == "spiral" ? <FormField
               label="Rotate Items?"
               value={useRotation}
               control={(props) => (
@@ -280,6 +322,9 @@ export const App = () => {
                     break;
                   case "wave":
                     await generateWave(width, height);
+                    break;
+                  case "spiral":
+                    await generateSpiral(width, height);
                     break;
                 }
               }}
