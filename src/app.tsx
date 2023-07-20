@@ -93,7 +93,7 @@ export const App = () => {
       <div className={styles.scrollContainer}>
         <Rows spacing="2u">
           <Text>
-            This app helps create nice arrangements of elements on your design.
+            This app helps create 𝔞𝔢𝔰𝔱𝔥𝔢𝔱𝔦𝔠 𝔞𝔯𝔯𝔞𝔫𝔤𝔢𝔪𝔢𝔫𝔱𝔰 of elements on your design.
           </Text>
           <FormField
               label="Arrangement"
