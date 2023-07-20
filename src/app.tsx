@@ -19,7 +19,7 @@ type AppElementData = {
 type UIState = AppElementData;
 
 const initialState: UIState = {
-  numElements: 4,
+  numElements: 5,
   newTop: 0,
   newLeft: 0,
 };
@@ -83,10 +83,15 @@ export const App = () => {
                 const width = context.dimensions?.width || 1000;
                 const height = context.dimensions?.height || 1000;
 
+                console.log("width: " + width);
+
                 const length = 100;
+                const segmentWidth = width / state.numElements;
 
                 for (let i = 0; i < state.numElements; i++) {
-                  const x = i * width / state.numElements;
+                  const x = i * segmentWidth + segmentWidth / 2 - length / 2;
+
+                  console.log(x);
 
                   await addNativeElement({
                     type: "SHAPE",
@@ -104,11 +109,14 @@ export const App = () => {
                       left: 0,
                       top: 0,
                     },
-                    left: x + length / 2,
+                    left: x,
                     top: height / 2 - length / 2,
                     width: 100,
                     height: 100,
                   });
+
+                  // rate limited
+                  await new Promise(r => setTimeout(r, 400));
                 }
               }}
               stretch
