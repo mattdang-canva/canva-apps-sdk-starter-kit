@@ -160,7 +160,13 @@ export const App = () => {
                 const width = context.dimensions?.width || 1000;
                 const height = context.dimensions?.height || 1000;
 
-                await generateHorizontal(width, height);
+                switch (state.arrangement) {
+                  case "horizontal":
+                    await generateHorizontal(width, height);
+                    break;
+                  case "ellipse":
+                    break;
+                }
               }}
               stretch
           >
