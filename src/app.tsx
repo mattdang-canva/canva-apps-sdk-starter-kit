@@ -17,7 +17,7 @@ type Arrangement = "horizontal" | "circle" | "wave"
 type AppElementData = {
   color: string;
   arrangement: Arrangement;
-  elementWidth: number;
+  elementSize: number;
   numElements: number;
   useRotation: boolean;
 };
@@ -27,7 +27,7 @@ type UIState = AppElementData;
 const initialState: UIState = {
   color: "#38b6ff",
   arrangement: "wave",
-  elementWidth: 100,
+  elementSize: 100,
   numElements: 5,
   useRotation: true,
 };
@@ -38,7 +38,7 @@ export const App = () => {
   const {
     color,
     arrangement,
-    elementWidth,
+    elementSize,
     numElements,
     useRotation,
   } = state;
@@ -47,7 +47,7 @@ export const App = () => {
     const segmentWidth = width / numElements;
 
     for (let i = 0; i < state.numElements; i++) {
-      const x = i * segmentWidth + segmentWidth / 2 - elementWidth / 2;
+      const x = i * segmentWidth + segmentWidth / 2 - elementSize / 2;
 
       await addNativeElement({
         type: "SHAPE",
@@ -60,15 +60,15 @@ export const App = () => {
           },
         ],
         viewBox: {
-          height: elementWidth,
-          width: elementWidth,
+          height: elementSize,
+          width: elementSize,
           left: 0,
           top: 0,
         },
         left: x,
-        top: height / 2 - elementWidth / 2,
-        width: elementWidth,
-        height: elementWidth,
+        top: height / 2 - elementSize / 2,
+        width: elementSize,
+        height: elementSize,
       });
 
       // rate limited
@@ -85,8 +85,8 @@ export const App = () => {
     for (let i = 0; i < state.numElements; i++) {
       const t = tStart + i * tSegment;
 
-      const x = width / 2 + r * Math.cos(t) - elementWidth / 2;
-      const y = height / 2 + r * Math.sin(t) - elementWidth / 2;
+      const x = width / 2 + r * Math.cos(t) - elementSize / 2;
+      const y = height / 2 + r * Math.sin(t) - elementSize / 2;
 
       const rotationDegrees = -360 + t * 180 / Math.PI;
 
@@ -101,15 +101,15 @@ export const App = () => {
           },
         ],
         viewBox: {
-          height: elementWidth,
-          width: elementWidth,
+          height: elementSize,
+          width: elementSize,
           left: 0,
           top: 0,
         },
         left: x,
         top: y,
-        width: elementWidth,
-        height: elementWidth,
+        width: elementSize,
+        height: elementSize,
         rotation: useRotation ? rotationDegrees : undefined,
       });
 
@@ -123,8 +123,8 @@ export const App = () => {
     const tSegment = 2 * Math.PI / state.numElements;
 
     for (let i = 0; i < state.numElements; i++) {
-      const x = i * segmentWidth + segmentWidth / 2 - elementWidth / 2;
-      const y = height / 2 + height / 4 * Math.cos(i * tSegment) - elementWidth / 2;
+      const x = i * segmentWidth + segmentWidth / 2 - elementSize / 2;
+      const y = height / 2 + height / 4 * Math.cos(i * tSegment) - elementSize / 2;
 
       await addNativeElement({
         type: "SHAPE",
@@ -137,15 +137,15 @@ export const App = () => {
           },
         ],
         viewBox: {
-          height: elementWidth,
-          width: elementWidth,
+          height: elementSize,
+          width: elementSize,
           left: 0,
           top: 0,
         },
         left: x,
         top: y,
-        width: elementWidth,
-        height: elementWidth,
+        width: elementSize,
+        height: elementSize,
       });
 
       // rate limited
@@ -184,7 +184,7 @@ export const App = () => {
           />
           <FormField
               label="Element Width"
-              value={elementWidth}
+              value={elementSize}
               control={(props) => (
                   <NumberInput
                       {...props}
@@ -194,7 +194,7 @@ export const App = () => {
                         setState((prevState) => {
                           return {
                             ...prevState,
-                            elementWidth: Number(value || 10),
+                            elementSize: Number(value || 10),
                           };
                         });
                       }}
