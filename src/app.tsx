@@ -10,9 +10,9 @@ import {
 import React from "react";
 import styles from "styles/components.css";
 
-const drawIntervalMs = 400;
+const drawIntervalMs = 250;
 
-type Arrangement = "horizontal" | "circle" | "wave" | "spiral"
+type Arrangement = "horizontal" | "circle" | "wave" | "spiral" | "mosaic"
 
 type AppElementData = {
   color: string;
@@ -26,7 +26,7 @@ type UIState = AppElementData;
 
 const initialState: UIState = {
   color: "#38b6ff",
-  arrangement: "spiral",
+  arrangement: "mosaic",
   elementSize: 100,
   numElements: 5,
   useRotation: true,
@@ -194,6 +194,48 @@ export const App = () => {
     }
   }
 
+  async function generateMosaic(width: number, height: number) {
+    const palette = ["#D8E2DC", "#FFE5D9", "#FFCAD4", "#F4ACB7", "#9D8189"];
+
+    const cellWidth = width / numElements;
+    const numVerticalElements = Math.round(numElements * height / width);
+    const cellHeight = height / numVerticalElements;
+
+    let k = 0;
+
+    for (let j = 0; j < numVerticalElements; j++) {
+      for (let i = 0; i < state.numElements; i++) {
+        const x = i * cellWidth;
+        const y = j * cellHeight;
+
+        await addNativeElement({
+          type: "SHAPE",
+          paths: [
+            {
+              d: `M 0 0 H ${cellWidth} V ${cellHeight} H 0 L 0 0`,
+              fill: {
+                color: palette[(k++) % palette.length],
+              },
+            },
+          ],
+          viewBox: {
+            height: cellHeight,
+            width: cellWidth,
+            left: 0,
+            top: 0,
+          },
+          left: x,
+          top: y,
+          width: cellWidth,
+          height: cellHeight,
+        });
+
+        // rate limited
+        await new Promise(r => setTimeout(r, drawIntervalMs));
+      }
+    }
+  }
+
   return (
       <div className={styles.scrollContainer}>
         <Rows spacing="2u">
@@ -211,6 +253,7 @@ export const App = () => {
                         { value: "circle", label: "Circle" },
                         { value: "spiral", label: "Spiral" },
                         { value: "wave", label: "Wave" },
+                        { value: "mosaic", label: "Mosaic" },
                       ]}
                       onChange={(value) => {
                         setState((prevState) => {
@@ -325,6 +368,9 @@ export const App = () => {
                     break;
                   case "spiral":
                     await generateSpiral(width, height);
+                    break;
+                  case "mosaic":
+                    await generateMosaic(width, height);
                     break;
                 }
               }}
