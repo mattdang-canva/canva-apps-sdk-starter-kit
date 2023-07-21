@@ -1,4 +1,5 @@
-import { addNativeElement, getCurrentPageContext, initAppElement } from "@canva/design";
+import { getCurrentPageContext } from "@canva/design";
+import { addNativeElement } from "@canva/preview/design";
 import {
   Button,
   FormField,
@@ -53,9 +54,10 @@ export const App = () => {
         type: "SHAPE",
         paths: [
           {
-            d: "M 0 0 H 100 V 100 H 0 L 0 0",
+            d: `M 0 0 H ${elementSize} V ${elementSize} H 0 L 0 0`,
             fill: {
               color: state.color,
+              dropTarget: true,
             },
           },
         ],
@@ -94,9 +96,10 @@ export const App = () => {
         type: "SHAPE",
         paths: [
           {
-            d: "M 0 0 H 100 V 100 H 0 L 0 0",
+            d: `M 0 0 H ${elementSize} V ${elementSize} H 0 L 0 0`,
             fill: {
               color: state.color,
+              dropTarget: true,
             },
           },
         ],
@@ -130,9 +133,10 @@ export const App = () => {
         type: "SHAPE",
         paths: [
           {
-            d: "M 0 0 H 100 V 100 H 0 L 0 0",
+            d: `M 0 0 H ${elementSize} V ${elementSize} H 0 L 0 0`,
             fill: {
               color: state.color,
+              dropTarget: true,
             },
           },
         ],
@@ -170,9 +174,10 @@ export const App = () => {
         type: "SHAPE",
         paths: [
           {
-            d: "M 0 0 H 100 V 100 H 0 L 0 0",
+            d: `M 0 0 H ${elementSize} V ${elementSize} H 0 L 0 0`,
             fill: {
               color: state.color,
+              dropTarget: true,
             },
           },
         ],
@@ -215,6 +220,7 @@ export const App = () => {
               d: `M 0 0 H ${cellWidth} V ${cellHeight} H 0 L 0 0`,
               fill: {
                 color: palette[(k++) % palette.length],
+                dropTarget: true,
               },
             },
           ],
