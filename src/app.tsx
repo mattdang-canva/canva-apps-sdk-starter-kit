@@ -21,6 +21,7 @@ type AppElementData = {
   elementSize: number;
   numElements: number;
   useRotation: boolean;
+  colorList: string;
 };
 
 type UIState = AppElementData;
@@ -29,8 +30,9 @@ const initialState: UIState = {
   color: "#38b6ff",
   arrangement: "mosaic",
   elementSize: 100,
-  numElements: 5,
+  numElements: 7,
   useRotation: true,
+  colorList: "#D8E2DC,#FFE5D9,#FFCAD4,#F4ACB7,#9D8189",
 };
 
 export const App = () => {
@@ -42,6 +44,7 @@ export const App = () => {
     elementSize,
     numElements,
     useRotation,
+    colorList,
   } = state;
 
   async function generateHorizontal(width: number, height: number) {
@@ -90,7 +93,7 @@ export const App = () => {
       const x = width / 2 + r * Math.cos(t) - elementSize / 2;
       const y = height / 2 + r * Math.sin(t) - elementSize / 2;
 
-      const rotationDegrees = -360 + t * 180 / Math.PI;
+      const rotationDegrees = -360 + 90 + t * 180 / Math.PI;
 
       await addNativeElement({
         type: "SHAPE",
@@ -200,7 +203,7 @@ export const App = () => {
   }
 
   async function generateMosaic(width: number, height: number) {
-    const palette = ["#D8E2DC", "#FFE5D9", "#FFCAD4", "#F4ACB7", "#9D8189"];
+    const colors = colorList.replace("/\s/g", '').split(',');
 
     const cellWidth = width / numElements;
     const numVerticalElements = Math.round(numElements * height / width);
@@ -219,7 +222,7 @@ export const App = () => {
             {
               d: `M 0 0 H ${cellWidth} V ${cellHeight} H 0 L 0 0`,
               fill: {
-                color: palette[(k++) % palette.length],
+                color: colors[(k++) % colors.length],
                 dropTarget: true,
               },
             },
@@ -273,7 +276,7 @@ export const App = () => {
                   />
               )}
           />
-          <FormField
+          {arrangement == "mosaic" ? undefined : <FormField
               label="Element Width"
               value={elementSize}
               control={(props) => (
@@ -291,9 +294,9 @@ export const App = () => {
                       }}
                   />
               )}
-          />
+          />}
           <FormField
-              label="Number of Elements"
+              label={arrangement == "mosaic" ? "Number of Tiles Across" : "Number of Elements"}
               value={numElements}
               control={(props) => (
                   <NumberInput
@@ -338,7 +341,23 @@ export const App = () => {
                   />
               )}
           /> : undefined }
-          <FormField
+          {arrangement == "mosaic" ? <FormField
+              label="Colors (comma separated)"
+              value={colorList}
+              control={(props) => (
+                  <TextInput
+                      {...props}
+                      onChange={(value) => {
+                        setState((prevState) => {
+                          return {
+                            ...prevState,
+                            colorList: value,
+                          };
+                        });
+                      }}
+                  />
+              )}
+          /> : <FormField
               label="Color"
               value={color}
               control={(props) => (
@@ -354,7 +373,7 @@ export const App = () => {
                       }}
                   />
               )}
-          />
+          />}
           <Button
               variant="primary"
               onClick={async () => {
