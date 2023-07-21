@@ -11,7 +11,7 @@ import {
 import React from "react";
 import styles from "styles/components.css";
 
-const drawIntervalMs = 250;
+const drawIntervalMs = 350;
 
 type Arrangement = "horizontal" | "circle" | "wave" | "spiral" | "mosaic"
 
